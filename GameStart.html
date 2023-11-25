@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #container {
+            text-align: center;
+        }
+
+        #player-form {
+            margin-bottom: 20px;
+        }
+
+        #player-list {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        #waiting-message {
+            font-size: 18px;
+        }
+
+        #game-board {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #game-board table {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        #game-board table,
+        #game-board td {
+            border: 1px solid #333;
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        #game-board td {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="player-form">
+            <h2>Enter your details</h2>
+            <label for="playerName">Player Name: </label>
+            <input type="text" id="playerName" placeholder="Enter your name">
+            <button onclick="addPlayer()">Join Game</button>
+        </div>
+
+        <!-- <div id="player-list">
+            <h2>Players List</h2>
+            <ul id="players"></ul>
+        </div>
+
+        <div id="waiting-message">
+            <h2>Waiting for another player...</h2>
+        </div>
+
+        <div id="game-board">
+            <h2>Game Board</h2>
+            <table id="board">
+            </table>
+        </div> -->
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script>
+
+        // console.log(localStorage.getItem('playerName'));
+
+        if (localStorage.getItem('playerObj')) {
+            window.location.href = "/gamebord";
+        }
+
+        const socket = io();
+
+        // Add a new player to the game
+        function addPlayer() {
+            const playerName = document.getElementById('playerName').value;
+
+            // Basic validation
+            if (!playerName) {
+                alert('Please enter your name and unique value.');
+                return;
+            }
+
+            // Make an AJAX call to add the player
+            ajaxAddPlayer(playerName);
+
+        }
+
+        // Function to make AJAX call and add the player
+        function ajaxAddPlayer(playerName) {
+            fetch('/addPlayer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ player_name: playerName }),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Error adding player: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Player added successfully.');
+                    console.log("gggggggggggggg", data);
+
+                    // Assuming data.gameID and data.playerName are returned by the server
+                    let localobj = {
+                        gameID: data.data.gameId,
+                        playerName: data.data.playerName,
+                        playerType: data.data.playerType,
+                    };
+                    localStorage.setItem('playerObj', JSON.stringify(localobj));
+                    socket.emit('joinGame', localobj);
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 100);
+                })
+                .catch(error => {
+                    console.error('Error adding player:', error.message);
+                });
+        }
+
+
+    </script>
+</body>
+
+</html>
